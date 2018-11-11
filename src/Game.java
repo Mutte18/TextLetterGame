@@ -15,10 +15,11 @@ public class Game extends JPanel implements Runnable {
     private int gameHeight = 500;
     private JFrame jFrame;
     private boolean isRunning = true;
-    private int rows = 6;
-    private int cols = 6;
+    private int rows = 10;
+    private int cols = 10;
     private int squareSize = 50;
     private int gameMatrix[][] = new int[rows][cols];
+    private String charMatrix[][] = new String[rows][cols];
 
     public Game() {
         createFrame();
@@ -45,27 +46,47 @@ public class Game extends JPanel implements Runnable {
     }
 
     private void fillGameMatrix() {
-        for (int row = 1; row < rows; row++) {
-            for (int col = 1; col < cols; col++) {
+        /*for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
                 gameMatrix[row][col] = 1;
             }
+        }*/
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                charMatrix[row][col] = "a";
+            }
         }
+        repaint();
     }
 
 
     private void printGameMatrix() {
-        for (int row = 1; row < rows; row++) {
-            for (int col = 1; col < cols; col++) {
+        /*for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
                 System.out.print("[" + gameMatrix[row][col] + "]");
             }
             System.out.println();
         }
         System.out.println("----------------------------------------------------");
+        */
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                System.out.print("[" + charMatrix[row][col] + "]");
+            }
+            System.out.println();
+        }
+        System.out.println("----------------------------------------------------");
+        repaint();
     }
 
     private void setSquareColor(int x, int y){
-        gameMatrix[y][x] = 1;
-        repaint();
+        if(x <= 9 && y <= 9) {
+            Letter letter = new Letter("b", x, y, squareSize);
+            //gameMatrix[y][x] = 1;
+            charMatrix[y][x] = letter.getLetter();
+            repaint();
+        }
     }
 
     private void gameLoop() {
@@ -76,29 +97,43 @@ public class Game extends JPanel implements Runnable {
 
     public void paint(Graphics g) {
         //g.setColor(Color.red);
-        for (int i = 0; i < rows; i++) {
-            g.drawLine(squareSize, squareSize + (squareSize * i), gameWidth + squareSize, squareSize + (squareSize * i));
+        for (int i = 0; i < rows + 1; i++) {
+            g.drawLine(0, squareSize * i, gameWidth, squareSize * i);
 
         }
-        for (int i = 0; i < cols; i++) {
-            g.drawLine(squareSize + (squareSize * i), squareSize, squareSize + (squareSize * i), gameHeight + squareSize);
+        for (int i = 0; i < cols + 1; i++) {
+            g.drawLine(squareSize * i, 0, squareSize * i, gameHeight);
         }
         /*g.drawLine(gameWidth, 100, gameWidth, gameHeight);
         g.drawLine(100, gameHeight, gameWidth, gameHeight);
 
         g.setColor(Color.black);
         */
-        for (int row = 1; row < rows; row++) {
-            for (int col = 1; col < cols; col++) {
+        /*for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
                 if(gameMatrix[row][col] == 1) {
                     g.setColor(Color.red);
                     g.fillRect(col * squareSize, row * squareSize, squareSize, squareSize);
                     g.setColor(Color.black);
                     g.drawRect(col * squareSize, row * squareSize, squareSize, squareSize);
-                    System.out.println(col + " " + row);
+                    //System.out.println(col + " " + row);
+                }
+            }
+        }*/
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if(charMatrix[row][col] != null) {
+                    g.setColor(Color.black);
+                    g.setFont(new Font("TimesRoman", Font.PLAIN, 40));
+                    g.drawString(charMatrix[row][col], col * squareSize, (row * squareSize) + (squareSize / 2) + 20);
+
+                    //System.out.println(col + " " + row);
                 }
             }
         }
+        repaint();
+
     }
 
 
@@ -133,18 +168,22 @@ public class Game extends JPanel implements Runnable {
             @Override
             public void mouseClicked(MouseEvent e) {
 
-                int mouseX = (e.getX() + squareSize) / squareSize;
-                int mouseY = (e.getY() + squareSize) / squareSize;
-                //setSquareColor(mouseX, mouseY);
-                System.out.println(mouseX + " " + mouseY);
-                System.out.println(e.getX() + " " + e.getY());
+
 
 
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-
+                int xOffset = 7;
+                int yOffset = 30;
+                int mouseX = (e.getX() - xOffset) / squareSize;
+                int mouseY = (e.getY() - yOffset) / squareSize;
+                setSquareColor(mouseX, mouseY);
+                System.out.println("Supposed X and Y Coords " + mouseX + " " + mouseY);
+                System.out.println("Actual X and Y: " + e.getX() + " " + e.getY());
+                System.out.println("X and Y with Offset " + (e.getX() - xOffset) + " " + (e.getY() - yOffset));
+                System.out.println("----------------------------------------------");
             }
 
             @Override
