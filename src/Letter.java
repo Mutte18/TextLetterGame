@@ -1,13 +1,20 @@
+import java.awt.*;
+
 public class Letter {
     private String letter;
     private int xPos;
     private int yPos;
+    private int letterXPos;
+    private int letterYPos;
     private int squareSize;
-    public Letter(String letter, int xPos, int yPos, int squareSize){
+    private boolean isMarked = false;
+    public Letter(String letter, int xPos, int yPos, int squareSize, int letterXPos, int letterYPos){
         this.letter = letter;
         this.xPos = xPos;
         this.yPos = yPos;
         this.squareSize = squareSize;
+        this.letterXPos = letterXPos;
+        this.letterYPos = letterYPos;
     }
 
     public String getLetter() {
@@ -24,5 +31,24 @@ public class Letter {
 
     public int getSquareSize() {
         return squareSize;
+    }
+
+    public boolean getIsMarked() {
+        return isMarked;
+    }
+
+    public void setMarked(boolean marked) {
+        isMarked = marked;
+    }
+
+    public void paintComponent(Graphics g){
+        if(isMarked){
+            g.setColor(Color.green);
+            g.fillRect(xPos, yPos, squareSize, squareSize);
+            g.setColor(Color.black);
+            g.drawRect(xPos, yPos, squareSize, squareSize);
+        }
+        g.drawString(letter, letterXPos, letterYPos);
+
     }
 }
