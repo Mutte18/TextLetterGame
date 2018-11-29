@@ -6,9 +6,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
@@ -25,19 +23,18 @@ public class Game extends JPanel implements Runnable {
     private int squareSize = 50;
     private int gameMatrix[][] = new int[rows][cols];
     private Letter charMatrix[][] = new Letter[rows][cols];
-    private String alphabet = "abcdefghijklmnopqrstuvwxzåäö";
     private String currentWord = "";
-    private ArrayList<String> wordList = new ArrayList<>();
     private ArrayList<Letter> currentlyMarkedWords = new ArrayList<>();
     private int gameScore = 0;
+    private WordHandler wordHandler;
 
     public Game() {
         createFrame();
         addGamePanel();
+        wordHandler = new WordHandler();
         fillGameMatrix();
         handleKeyEvents();
         handleMouseEvents();
-        loadWordList();
         gameLoop();
     }
 
@@ -50,19 +47,6 @@ public class Game extends JPanel implements Runnable {
         jFrame.setLocationRelativeTo(null);
     }
 
-    private void loadWordList() {
-        File file = new File("src/englishWordList.txt");
-        try {
-            Scanner scanner = new Scanner(file);
-            while (scanner.hasNextLine()) {
-                wordList.add(scanner.nextLine());
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     private void addGamePanel() {
         this.setSize(gameWidth, gameHeight);
         this.setVisible(true);
@@ -70,28 +54,23 @@ public class Game extends JPanel implements Runnable {
     }
 
     private void fillGameMatrix() {
-        /*for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                gameMatrix[row][col] = 1;
-            }
-        }*/
-
+        Letter letter = null;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                /*Random r = new Random();
-                char currentLetter = alphabet.charAt(r.nextInt(alphabet.length()));
-                charMatrix[row][col] = new Letter(String.valueOf(currentLetter), (col * squareSize), (row * squareSize), squareSize,
-                        col * squareSize + 20, (row * squareSize) + (squareSize / 2) + 20);
-                        */
-                generateRandomLetter(row, col);
+                letter = charMatrix[row][col];
+
+                if (letter != null && !letter.getIsMarked()) {
+                    generateRandomLetter(row, col);
+                } else if (letter == null) {
+                    generateRandomLetter(row, col);
+                }
             }
         }
         repaint();
     }
 
     private void generateRandomLetter(int row, int col) {
-        Random r = new Random();
-        char currentLetter = alphabet.charAt(r.nextInt(alphabet.length()));
+        char currentLetter = wordHandler.getRandomCharacterFromAlphabet();
         charMatrix[row][col] = new Letter(String.valueOf(currentLetter), (col * squareSize), (row * squareSize), squareSize,
                 col * squareSize + 20, (row * squareSize) + (squareSize / 2) + 20);
     }
@@ -113,15 +92,6 @@ public class Game extends JPanel implements Runnable {
 
 
     private void printGameMatrix() {
-        /*for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                System.out.print("[" + gameMatrix[row][col] + "]");
-            }
-            System.out.println();
-        }
-        System.out.println("----------------------------------------------------");
-        */
-
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 System.out.print("[" + charMatrix[row][col].getLetter() + "]");
@@ -133,7 +103,6 @@ public class Game extends JPanel implements Runnable {
     }
 
     private void searchForChar(String searchChar, Letter charMatrix[][]) {
-
         label:
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
@@ -161,35 +130,34 @@ public class Game extends JPanel implements Runnable {
         }
     }
 
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        //g.setColor(Color.red);
+    private void drawGameLines(Graphics g) {
         for (int i = 0; i < rows + 1; i++) {
             g.drawLine(0, squareSize * i, gameWidth, squareSize * i);
-
         }
         for (int i = 0; i < cols + 1; i++) {
             g.drawLine(squareSize * i, 0, squareSize * i, gameHeight);
         }
 
+
+    }
+
+    private void drawWordToFind(Graphics g) {
+        g.setColor(Color.black);
+        g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
+        g.drawString("Try to find this word: ", windowWidth - 250, 75);
+        g.setColor(Color.GREEN);
+        g.drawString(wordHandler.getFirstWord(), windowWidth - 150, 100);
+    }
+
+    private void drawCurrentlyWrittenWord(Graphics g) {
+        g.setColor(Color.black);
         g.drawLine(100, 550, 500, 550);
         g.drawString(currentWord, 100, 550);
-        /*g.drawLine(gameWidth, 100, gameWidth, gameHeight);
-        g.drawLine(100, gameHeight, gameWidth, gameHeight);
+    }
 
-        g.setColor(Color.black);
-        */
-        /*for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                if(gameMatrix[row][col] == 1) {
-                    g.setColor(Color.red);
-                    g.fillRect(col * squareSize, row * squareSize, squareSize, squareSize);
-                    g.setColor(Color.black);
-                    g.drawRect(col * squareSize, row * squareSize, squareSize, squareSize);
-                    //System.out.println(col + " " + row);
-                }
-            }
-        }*/
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        drawGameLines(g);
 
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
@@ -197,13 +165,11 @@ public class Game extends JPanel implements Runnable {
                     g.setColor(Color.black);
                     g.setFont(new Font("TimesRoman", Font.PLAIN, 40));
                     charMatrix[row][col].paintComponent(g);
-                    //g.drawString(charMatrix[row][col].getLetter(), col * squareSize + 20, (row * squareSize) + (squareSize / 2) + 20);
-
-                    //System.out.println(col + " " + row);
                 }
             }
         }
-
+        drawWordToFind(g);
+        drawCurrentlyWrittenWord(g);
 
     }
 
@@ -213,31 +179,13 @@ public class Game extends JPanel implements Runnable {
     }
 
     private void removeLastAddedLetterFromWord() {
-        if(!currentlyMarkedWords.isEmpty()) {
+        if (!currentlyMarkedWords.isEmpty()) {
             currentWord = currentWord.substring(0, currentWord.length() - 1);
-            currentlyMarkedWords.get(currentlyMarkedWords.size()-1).setMarked(false);
-            currentlyMarkedWords.remove(currentlyMarkedWords.size()-1);
+            currentlyMarkedWords.get(currentlyMarkedWords.size() - 1).setMarked(false);
+            currentlyMarkedWords.remove(currentlyMarkedWords.size() - 1);
         }
     }
 
-    private boolean checkIfValidWord(String suggestedWord) {
-        if (wordList.contains(suggestedWord)) {
-            System.out.println("SUCCESS!!!");
-            gameScore += suggestedWord.length();
-            wordList.remove(suggestedWord);
-
-
-        }
-        /*
-        Here I will send in the word and check through my word list. If the word matches to a word it is valid.
-        Points will be awarded, and true will be returned so new letters will show up
-
-        If it is not valid then false will be returned which in turn will just remove the markers (green stuff)
-        and not show new letters.
-         */
-
-        return true;
-    }
 
     private Letter getLetter(int mouseX, int mouseY) {
         return charMatrix[mouseY][mouseX];
@@ -247,15 +195,10 @@ public class Game extends JPanel implements Runnable {
         letter.setMarked(value);
     }
 
-    private void deSelectLetter(){
-
-    }
-
-    private void selectLetter(Letter letter){
+    private void selectLetter(Letter letter) {
         letter.setMarked(true);
         currentlyMarkedWords.add(letter);
     }
-
 
 
     private void handleKeyEvents() {
@@ -270,7 +213,9 @@ public class Game extends JPanel implements Runnable {
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_SPACE:
                         System.out.println(currentWord);
-                        removeMarkedLetters(checkIfValidWord(currentWord));
+                        removeMarkedLetters(wordHandler.checkIfValidWord(currentWord));
+                        currentlyMarkedWords.clear();
+
                         currentWord = "";
                         break;
                     case KeyEvent.VK_SHIFT:
@@ -279,6 +224,9 @@ public class Game extends JPanel implements Runnable {
                     case KeyEvent.VK_CONTROL:
                         fillGameMatrix();
                         repaint();
+                        break;
+                    case KeyEvent.VK_BACK_SPACE:
+                        removeLastAddedLetterFromWord();
                         break;
                 }
             }
