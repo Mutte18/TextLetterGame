@@ -4,8 +4,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
@@ -59,7 +57,7 @@ public class Game extends JPanel implements Runnable {
             for (int col = 0; col < cols; col++) {
                 letter = charMatrix[row][col];
 
-                if (letter != null && !letter.getIsMarked()) {
+                if (letter != null && !letter.getMarked()) {
                     generateRandomLetter(row, col);
                 } else if (letter == null) {
                     generateRandomLetter(row, col);
@@ -75,11 +73,53 @@ public class Game extends JPanel implements Runnable {
                 col * squareSize + 20, (row * squareSize) + (squareSize / 2) + 20);
     }
 
+    private boolean checkIfWordCanBeCompleted(Letter[][] charMatrix, String currentWord) {
+        HashMap<String, Integer> characterCount = countCharactersInWord(currentWord);
+        Letter letter;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                letter = charMatrix[row][col];
+                if (characterCount.containsKey(letter.getLetter())) {
+                    int currentValue = characterCount.get(letter.getLetter());
+                    int decrementedValue = currentValue -1;
+                    if (decrementedValue <= 0) {
+                        characterCount.remove(letter.getLetter());
+                        letter.setCounted(true);
+                        if(characterCount.size() == 0)
+                            return false;
+                    } else {
+                        characterCount.put(letter.getLetter(), currentValue - 1);
+                        letter.setCounted(true);
+                    }
+                }
+
+            }
+        }
+        if (characterCount.size() == 0) {
+            System.out.println("IT CAN BE DONE!!!");
+            return false;
+        }
+        return true;
+
+    }
+
+    private HashMap<String, Integer> countCharactersInWord(String currentWord) {
+        int[] count = new int[256];
+        int len = currentWord.length();
+        HashMap<String, Integer> charOccurance = new HashMap<>();
+        for (int i = 0; i < len; i++) {
+            count[currentWord.charAt(i)]++;
+            charOccurance.put(String.valueOf(currentWord.charAt(i)), count[currentWord.charAt(i)]);
+        }
+        System.out.println("Hej");
+        return charOccurance;
+    }
+
     private void removeMarkedLetters(boolean validWord) {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 Letter currentTarget = charMatrix[row][col];
-                if (currentTarget.getIsMarked()) {
+                if (currentTarget.getMarked()) {
                     if (validWord) {
                         generateRandomLetter(row, col);
                     } else {
@@ -107,7 +147,7 @@ public class Game extends JPanel implements Runnable {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 Letter currentTarget = charMatrix[row][col];
-                if (currentTarget.getLetter().contains(searchChar) && !currentTarget.getIsMarked()) {
+                if (currentTarget.getLetter().contains(searchChar) && !currentTarget.getMarked()) {
                     currentTarget.setMarked(true);
                     System.out.println(searchChar + " ===== " + charMatrix[row][col].getLetter());
                     addToCurrentWord(currentTarget);
@@ -205,7 +245,9 @@ public class Game extends JPanel implements Runnable {
         jFrame.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-                searchForChar(String.valueOf(e.getKeyChar()), charMatrix);
+                if (currentWord.length() < wordHandler.getFirstWord().length()) {
+                    searchForChar(String.valueOf(e.getKeyChar()), charMatrix);
+                }
             }
 
             @Override
@@ -222,7 +264,8 @@ public class Game extends JPanel implements Runnable {
                         printGameMatrix();
                         break;
                     case KeyEvent.VK_CONTROL:
-                        fillGameMatrix();
+                        checkIfWordCanBeCompleted(charMatrix, wordHandler.getFirstWord());
+                        //fillGameMatrix();
                         repaint();
                         break;
                     case KeyEvent.VK_BACK_SPACE:
@@ -257,7 +300,7 @@ public class Game extends JPanel implements Runnable {
 
                     switch (e.getButton()) {
                         case 1:
-                            if (!currentLetter.getIsMarked()) {
+                            if (!currentLetter.getMarked() && currentWord.length() < wordHandler.getFirstWord().length()) {
                                 addToCurrentWord(currentLetter);
                                 markCurrentLetter(currentLetter, true);
                             }

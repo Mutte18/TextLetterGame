@@ -1,12 +1,10 @@
 If you try to randomize and the characthers needed are still in the matrix.
 Point them out by red color to let the user know it was possible to complete.
+(This proves to be quite difficult and may be saved for later)
 
 Come up with a reason to punish the user if you randomize when still able to complete
 
 Give an encouraging message if you find the word and write it correctly
-
-Set the allowed characters for the word to dynamically change based on word to find length, so that you cant
-write a word longer than the intended one.
 
 Give points in some form of system based on length of the word perhaps?
 

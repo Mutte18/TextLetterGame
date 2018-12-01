@@ -8,7 +8,9 @@ public class Letter {
     private int letterYPos;
     private int squareSize;
     private boolean isMarked = false;
-    public Letter(String letter, int xPos, int yPos, int squareSize, int letterXPos, int letterYPos){
+    private boolean isCounted = false;
+
+    public Letter(String letter, int xPos, int yPos, int squareSize, int letterXPos, int letterYPos) {
         this.letter = letter;
         this.xPos = xPos;
         this.yPos = yPos;
@@ -33,7 +35,7 @@ public class Letter {
         return squareSize;
     }
 
-    public boolean getIsMarked() {
+    public boolean getMarked() {
         return isMarked;
     }
 
@@ -41,14 +43,29 @@ public class Letter {
         isMarked = marked;
     }
 
-    public void paintComponent(Graphics g){
-        if(isMarked){
+    public void paintComponent(Graphics g) {
+        if (isMarked) {
             g.setColor(Color.green);
+            g.fillRect(xPos, yPos, squareSize, squareSize);
+            g.setColor(Color.black);
+            g.drawRect(xPos, yPos, squareSize, squareSize);
+        }
+        else if(isCounted)
+        {
+            g.setColor(Color.red);
             g.fillRect(xPos, yPos, squareSize, squareSize);
             g.setColor(Color.black);
             g.drawRect(xPos, yPos, squareSize, squareSize);
         }
         g.drawString(letter, letterXPos, letterYPos);
 
+    }
+
+    public boolean isCounted() {
+        return isCounted;
+    }
+
+    public void setCounted(boolean counted) {
+        isCounted = counted;
     }
 }
